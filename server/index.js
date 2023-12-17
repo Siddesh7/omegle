@@ -1,0 +1,102 @@
+// server.js
+
+const express = require("express");
+const http = require("http");
+const socketIO = require("socket.io");
+
+const app = express();
+const server = http.createServer(app);
+const io = socketIO(server);
+
+const connectedUsers = new Set();
+const busyPeers = new Set();
+let users = [];
+//const user = [{walletAddress: "0x123",online:true,busy:true, lookingForPeers:false, socketId: "123"}];
+io.on("connection", (socket) => {
+  console.log(`User connected with socket id: ${socket.id}`);
+
+  socket.on("disconnect", () => {
+    console.log(`User disconnected with socket id: ${socket.id}`);
+    connectedUsers.delete(socket.id);
+    busyPeers.delete(socket.id); // Remove from busy peers
+    io.emit("peer_disconnected");
+  });
+
+  socket.on("connect_wallet", (walletAddress) => {
+    // Store the wallet address and mark the user as connected
+    console.log(`User connected with wallet address: ${walletAddress}`);
+    socket.walletAddress = walletAddress;
+    users.push({
+      walletAddress: walletAddress,
+      id: socket.id,
+      online: true,
+      busy: false,
+      lookingForPeers: true,
+    });
+  });
+
+  // Inside the "connect_to_peer" event handler
+  socket.on("connect_to_peer", (walletAddress) => {
+    // Check if the current peer is busy
+    const caller = users.find((user) => user.walletAddress === walletAddress);
+    if (caller && caller.busy) {
+      return;
+    }
+
+    const availableUsers = users.filter(
+      (user) =>
+        user.walletAddress !== walletAddress &&
+        user.online === true &&
+        user.lookingForPeers === true &&
+        user.busy === false
+    );
+    console.log(availableUsers);
+    // Check if there are valid users in the filtered array
+    if (availableUsers.length > 0) {
+      // Choose a random item from the filtered array
+      const chosenItem =
+        availableUsers[Math.floor(Math.random() * availableUsers.length)];
+
+      // Now you can use the chosenItem for further processing
+      console.log(chosenItem);
+      // Notify both peers that they are connected
+      io.to(chosenItem.id).emit("peer_connected", walletAddress);
+      io.to(caller.id).emit("peer_connected", chosenItem.walletAddress);
+      const userIndexCaller = users.findIndex(
+        (user) => user.walletAddress === walletAddress
+      );
+      const userIndexPeer = users.findIndex(
+        (user) => user.walletAddress === chosenItem.walletAddress
+      );
+      users[userIndexCaller].busy = true;
+      users[userIndexPeer].busy = true;
+    } else {
+      console.log("No valid user found.");
+    }
+  });
+
+  socket.on("disconnect_peer", () => {
+    // Handle disconnecting from a peer, if needed
+
+    const walletAddress = socket.walletAddress;
+    if (walletAddress) {
+      const userIndex = users.findIndex(
+        (user) => user.walletAddress === walletAddress
+      );
+      // Check if the user is found
+      if (userIndex !== -1) {
+        // Update the busy status to true for the found user
+        users[userIndex].online = false;
+        users[userIndex].lookingForPeers = false;
+        users[userIndex].busy = false;
+      }
+    }
+  });
+
+  // Other event handlers...
+});
+
+const PORT = process.env.PORT || 3001;
+server.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
