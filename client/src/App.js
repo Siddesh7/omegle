@@ -1,6 +1,3 @@
-// App.js
-
-// Importing necessary modules and components
 import React, {useEffect, useState} from "react";
 import io from "socket.io-client";
 import {ConnectButton} from "@rainbow-me/rainbowkit";
@@ -38,27 +35,6 @@ function App() {
   const provider = new ethers.providers.Web3Provider(window.ethereum);
   const signer = provider.getSigner();
 
-  // Function to send a chat request to the connected peer
-  const sendChatRequest = async (peerAddress) => {
-    console.log("Clicked");
-    console.log(peerAddress);
-
-    // Initialize PushAPI
-    const userAlice = await PushAPI.initialize(signer, {env: "staging"});
-
-    // Send a message to the peer
-    const aliceMessagesBob = await userAlice.chat.send(peerAddress, {
-      content: "Gm gm! It's a me... Mario",
-    });
-    console.log(aliceMessagesBob);
-
-    // Wait for 10 seconds
-    await new Promise((resolve) => setTimeout(resolve, 10000));
-
-    // Accept the chat request from the peer
-    const acceptPeerChat = await userAlice.chat.accept(peerAddress);
-  };
-
   // useEffect to handle socket events and lifecycle
   useEffect(() => {
     // Event listener for peer connection
@@ -93,7 +69,6 @@ function App() {
     };
   }, [walletAddress, walletConnected]);
 
-  // JSX structure of the component
   return (
     <PageContainer>
       <Header>
