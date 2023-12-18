@@ -27,13 +27,13 @@ This project randomly connects 2 peers online and opens up a Push chat between t
 
 3. Start the Server:
 
-```bash
-# Using Yarn
-yarn start
-
-# Using npm
-npm start
-```
+    ```bash
+    # Using Yarn
+    yarn start
+    
+    # Using npm
+    npm start
+    ```
 
 
 #### The server will run on the specified port (default is 3001).
@@ -57,13 +57,13 @@ npm start
     ```
 3. Start the Client:
 
-```bash
-# Using Yarn
-yarn start
-
-# Using npm
-npm start
-```
+    ```bash
+    # Using Yarn
+    yarn start
+    
+    # Using npm
+    npm start
+    ```
 
 
 
