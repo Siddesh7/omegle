@@ -17,8 +17,18 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     console.log(`User disconnected with socket id: ${socket.id}`);
-    connectedUsers.delete(socket.id);
-    busyPeers.delete(socket.id); // Remove from busy peers
+
+    const id = socket.id;
+    if (id) {
+      const userIndex = users.findIndex((user) => user.id === id);
+
+      // Check if the user is found
+      if (userIndex !== -1) {
+        users.splice(userIndex, 1);
+
+        console.log("Updated Users Array:", users);
+      }
+    }
     io.emit("peer_disconnected");
   });
 
@@ -70,6 +80,8 @@ io.on("connection", (socket) => {
       );
       users[userIndexCaller].busy = true;
       users[userIndexPeer].busy = true;
+      users[userIndexCaller].lookingForPeers = false;
+      users[userIndexPeer].lookingForPeers = false;
     } else {
       console.log("No valid user found.");
     }
@@ -83,18 +95,31 @@ io.on("connection", (socket) => {
       const userIndex = users.findIndex(
         (user) => user.walletAddress === walletAddress
       );
+
       // Check if the user is found
       if (userIndex !== -1) {
-        // Update the busy status to true for the found user
-        users[userIndex].online = false;
-        users[userIndex].lookingForPeers = false;
-        users[userIndex].busy = false;
+        users.splice(userIndex, 1);
+
+        console.log("Updated Users Array:", users);
       }
     }
   });
 
   // Other event handlers...
 });
+// Function to log users every 10 seconds
+function logUsers() {
+  console.log("-------------------Connected Users:--------------------------");
+  users.forEach((user) => {
+    console.log(
+      `Wallet Address: ${user.walletAddress}, Online: ${user.online}, Busy: ${user.busy}, LookingForPeer: ${user.lookingForPeers}`
+    );
+  });
+  console.log("-------------------Connected Users:--------------------------");
+}
+
+// Schedule the logUsers function to run every 10 seconds
+setInterval(logUsers, 10000); // 10000 milliseconds = 10 seconds
 
 const PORT = process.env.PORT || 3001;
 server.listen(PORT, () => {

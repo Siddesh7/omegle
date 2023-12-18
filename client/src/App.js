@@ -5,26 +5,33 @@ import io from "socket.io-client";
 import {useEffect, useState} from "react";
 import {ConnectButton} from "@rainbow-me/rainbowkit";
 import {useAccount} from "wagmi";
-
+import {PushAPI} from "@pushprotocol/restapi";
+import {useWalletClient} from "wagmi";
 const socket = io.connect("http://localhost:3001");
 
 function App() {
-  const [room, setRoom] = useState("");
   const [isPeerConnected, setIsPeerConnected] = useState(false);
   const [peerWalletAddress, setPeerWalletAddress] = useState("");
-
-  const joinRoom = () => {
-    if (room !== "") {
-      socket.emit("join_room", room);
-    }
-  };
 
   const {address: walletAddress, isConnected: walletConnected} = useAccount();
   const connectToPeer = () => {
     socket.emit("connect_to_peer", walletAddress);
   };
 
+  const {data: walletClient} = useWalletClient();
+  const sendChatRequest = async () => {
+    console.log("clickeed");
+    const userAlice = await PushAPI.initialize(walletClient, {env: "staging"});
+
+    // Send a message to Bob
+    const aliceMessagesBob = await userAlice.chat.send(peerWalletAddress, {
+      content: "Gm gm! It's a me... Mario",
+    });
+    console.log(aliceMessagesBob);
+  };
   useEffect(() => {
+    console.log(walletClient);
+    sendChatRequest();
     socket.on("peer_connected", (peerAddress) => {
       setIsPeerConnected(true);
       setPeerWalletAddress(peerAddress);
@@ -39,10 +46,6 @@ function App() {
       socket.emit("connect_wallet", walletAddress);
     }
 
-    socket.on("receive_message", (data) => {
-      // Handle received messages
-    });
-
     // Cleanup when the component unmounts
     return () => {
       socket.emit("disconnect_peer", walletAddress);
@@ -52,17 +55,6 @@ function App() {
 
   return (
     <div className="App">
-      {!walletConnected && (
-        <>
-          <input
-            placeholder="Room Number..."
-            onChange={(event) => {
-              setRoom(event.target.value);
-            }}
-          />
-          <button onClick={joinRoom}> Join Room</button>
-        </>
-      )}
       <ConnectButton />
       {walletConnected && !isPeerConnected && (
         <button onClick={connectToPeer}> Connect to a Peer</button>
