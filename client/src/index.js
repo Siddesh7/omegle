@@ -3,7 +3,12 @@ import ReactDOM from "react-dom";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import "@rainbow-me/rainbowkit/styles.css";
-import {getDefaultWallets, RainbowKitProvider} from "@rainbow-me/rainbowkit";
+import {
+  darkTheme,
+  getDefaultWallets,
+  lightTheme,
+  RainbowKitProvider,
+} from "@rainbow-me/rainbowkit";
 import {configureChains, createConfig, WagmiConfig} from "wagmi";
 import {sepolia} from "wagmi/chains";
 import {publicProvider} from "wagmi/providers/public";
@@ -21,7 +26,7 @@ const wagmiConfig = createConfig({
 ReactDOM.render(
   <React.StrictMode>
     <WagmiConfig config={wagmiConfig}>
-      <RainbowKitProvider chains={chains}>
+      <RainbowKitProvider chains={chains} theme={darkTheme()}>
         <App />
       </RainbowKitProvider>
     </WagmiConfig>

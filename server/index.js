@@ -1,5 +1,3 @@
-// server.js
-
 const express = require("express");
 const http = require("http");
 const socketIO = require("socket.io");
@@ -8,10 +6,8 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
 
-const connectedUsers = new Set();
-const busyPeers = new Set();
 let users = [];
-//const user = [{walletAddress: "0x123",online:true,busy:true, lookingForPeers:false, socketId: "123"}];
+
 io.on("connection", (socket) => {
   console.log(`User connected with socket id: ${socket.id}`);
 
@@ -24,12 +20,28 @@ io.on("connection", (socket) => {
 
       // Check if the user is found
       if (userIndex !== -1) {
+        const disconnectedUser = users[userIndex];
         users.splice(userIndex, 1);
 
         console.log("Updated Users Array:", users);
+
+        // Emit "peer_disconnected" only to the connected peer
+        const connectedPeerSocket = io.sockets.sockets.get(
+          disconnectedUser.connectedPeerId
+        );
+        if (connectedPeerSocket) {
+          connectedPeerSocket.emit("peer_disconnected");
+        }
+        // Update the connected peer's properties
+        const connectedPeerIndex = users.findIndex(
+          (user) => user.id === disconnectedUser.connectedPeerId
+        );
+        if (connectedPeerIndex !== -1) {
+          users[connectedPeerIndex].busy = false;
+          users[connectedPeerIndex].lookingForPeers = true;
+        }
       }
     }
-    io.emit("peer_disconnected");
   });
 
   socket.on("connect_wallet", (walletAddress) => {
@@ -42,6 +54,7 @@ io.on("connection", (socket) => {
       online: true,
       busy: false,
       lookingForPeers: true,
+      connectedPeerId: null, // Add a property to store connected peer's ID
     });
   });
 
@@ -82,7 +95,11 @@ io.on("connection", (socket) => {
       users[userIndexPeer].busy = true;
       users[userIndexCaller].lookingForPeers = false;
       users[userIndexPeer].lookingForPeers = false;
+      users[userIndexCaller].connectedPeerId = chosenItem.id;
+      users[userIndexPeer].connectedPeerId = caller.id;
     } else {
+      io.to(caller.id).emit("no_active_peers_found", walletAddress);
+
       console.log("No valid user found.");
     }
   });
@@ -112,7 +129,7 @@ function logUsers() {
   console.log("-------------------Connected Users:--------------------------");
   users.forEach((user) => {
     console.log(
-      `Wallet Address: ${user.walletAddress}, Online: ${user.online}, Busy: ${user.busy}, LookingForPeer: ${user.lookingForPeers}`
+      `Wallet Address: ${user.walletAddress}, Online: ${user.online}, Busy: ${user.busy}, LookingForPeer: ${user.lookingForPeers} socket: ${user.id}`
     );
   });
   console.log("-------------------Connected Users:--------------------------");
