@@ -8,7 +8,8 @@ import {CONSTANTS, PushAPI, user} from "@pushprotocol/restapi";
 import Video from "./video";
 
 // Initializing the socket connection to the server
-const socket = io.connect("http://localhost:3001");
+
+const socket = io.connect(process.env.REACT_APP_SERVER_URL);
 
 // Main App component
 function App() {
