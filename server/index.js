@@ -7,7 +7,9 @@ const server = http.createServer(app);
 const io = socketIO(server);
 
 let users = [];
-
+app.get("/get", (req, res) => {
+  res.send("Server is working");
+});
 io.on("connection", (socket) => {
   console.log(`User connected with socket id: ${socket.id}`);
 
