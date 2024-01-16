@@ -38,6 +38,9 @@ const Video = ({peerAddress, userAlice, initiator, emitPeerDisconnect}) => {
       if (data.event === VideoEventType.RequestVideo) {
         await aliceVideoCall.current.approve(data?.peerInfo);
       }
+      if (data.event === VideoEventType.DisconnectVideo) {
+        emitPeerDisconnect();
+      }
     });
 
     aliceVideoCall.current = await userAlice.video.initialize(setData, {

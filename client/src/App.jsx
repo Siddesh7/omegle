@@ -45,7 +45,10 @@ function App() {
     // Event listener for peer connection
     socket.on("peer_matched", (peerAddress) => {
       console.log(peerAddress);
-      // setIsPeerConnected(true);
+      if (!peerAddress) {
+        setShowNoActivePeersModal(true);
+        return;
+      }
       setPeerMatched(true);
 
       checkIfChatExists(peerAddress);
@@ -75,6 +78,11 @@ function App() {
       console.log("intent accepted by peer");
 
       setIsPeerConnected(true);
+    });
+    socket.on("peer_disconnected_call", async (peerAddress) => {
+      console.log("peer_disconnected_call");
+
+      setIsPeerConnected(false);
     });
 
     // Connect wallet to the server if connected
@@ -146,15 +154,12 @@ function App() {
             userAlice={userAlice.current}
             initiator={videoCallInitiator}
             emitPeerDisconnect={() => {
-              socket.emit("disconnect_peer", peerWalletAddress);
+              socket.emit("endPeerConnection", peerWalletAddress);
+              setIsPeerConnected(false);
             }}
           />
         )}
       </div>
-      {/* Render PushChat component if connected to a peer */}
-      {/* {isPeerConnected && (
-        <PushChat chatId={peerWalletAddress} signer={signer} />
-      )} */}
 
       {/* Render the modal when the peer is disconnected */}
       {showPeerDisconnectedModal && (

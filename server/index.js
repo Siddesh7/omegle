@@ -101,6 +101,7 @@ io.on("connection", (socket) => {
     const availableUsers = users.filter(
       (user) =>
         user.walletAddress !== walletAddress &&
+        user.walletAddress !== null &&
         user.online === true &&
         user.lookingForPeers === true &&
         user.busy === false
@@ -136,6 +137,28 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("endPeerConnection", (peerAddress) => {
+    // Handle disconnecting from a peer, if needed
+
+    if (socket.walletAddress) {
+      const userIndex = users.findIndex(
+        (user) => user.walletAddress === socket.walletAddress
+      );
+      const userIndexPeer = users.findIndex(
+        (user) => user.walletAddress === peerAddress
+      );
+      // Instead of removing the user entry, update its properties
+      if (userIndex !== -1) {
+        users[userIndex].busy = false;
+        users[userIndex].lookingForPeers = true;
+      }
+      if (userIndexPeer !== -1) {
+        users[userIndexPeer].busy = false;
+        users[userIndexPeer].lookingForPeers = true;
+      }
+      io.to(userIndexPeer.id).emit("peer_disconnected_call");
+    }
+  });
   socket.on("disconnect_peer", () => {
     // Handle disconnecting from a peer, if needed
 
