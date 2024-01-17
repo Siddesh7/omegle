@@ -24,42 +24,42 @@ const Video = ({
   const [isPushStreamConnected, setIsPushStreamConnected] = useState(false);
   console.log("peerAddress", peerAddress);
   const [data, setData] = useState(initVideoCallData);
-
+  const createdStream = useRef();
   const initializePushAPI = async () => {
-    const createdStream = await userAlice.initStream([
+    createdStream.current = await userAlice.initStream([
       CONSTANTS.STREAM.VIDEO,
       CONSTANTS.STREAM.CONNECT,
       CONSTANTS.STREAM.DISCONNECT,
     ]);
 
-    createdStream.on(CONSTANTS.STREAM.CONNECT, () => {
+    createdStream.current.on(CONSTANTS.STREAM.CONNECT, () => {
       setIsPushStreamConnected(true);
     });
 
-    createdStream.on(CONSTANTS.STREAM.DISCONNECT, () => {
+    createdStream.current.on(CONSTANTS.STREAM.DISCONNECT, () => {
       setIsPushStreamConnected(false);
     });
 
-    createdStream.on(CONSTANTS.STREAM.VIDEO, async (data) => {
+    createdStream.current.on(CONSTANTS.STREAM.VIDEO, async (data) => {
       console.log("Video Event", data);
       if (data.event === VideoEventType.RequestVideo) {
         await aliceVideoCall.current.approve(data?.peerInfo);
       }
       if (data.event === VideoEventType.DisconnectVideo) {
-        createdStream.disconnect();
+        createdStream.current.disconnect();
         emitPeerDisconnect();
       }
     });
 
     aliceVideoCall.current = await userAlice.video.initialize(setData, {
-      stream: createdStream,
+      stream: createdStream.current,
       config: {
         video: true,
         audio: true,
       },
     });
 
-    await createdStream.connect();
+    await createdStream.current.connect();
 
     if (initiator.toLowerCase() === walletAddress.toLowerCase()) {
       await aliceVideoCall.current.request([peerAddress]);
@@ -69,12 +69,11 @@ const Video = ({
   // Here we initialize the push video API, which is the first and important step to make video calls
   useEffect(() => {
     if (!signer) return;
-    // if (data?.incoming[0]?.status !== VideoCallStatus.UNINITIALIZED) return; // data?.incoming[0]?.status will have a status of VideoCallStatus.UNINITIALIZED when the video call is not initialized, call ended or denied. So we Initialize the Push API here.
     initializePushAPI();
-  }, [signer]);
+  }, []);
 
   useEffect(() => {
-    console.log("isPushStreamConnected", isPushStreamConnected); // This will be true when the push stream is connected
+    console.log("isPushStreamConnected", isPushStreamConnected);
   }, [isPushStreamConnected]);
 
   return (
@@ -94,7 +93,7 @@ const Video = ({
               await aliceVideoCall.current.disconnect(
                 data?.incoming[0]?.address
               );
-
+              createdStream.current.disconnect();
               onEndCall();
               window.location.reload();
             }}
