@@ -9,8 +9,15 @@ import {useEffect, useRef, useState} from "react";
 import {initVideoCallData} from "@pushprotocol/restapi/src/lib/video";
 
 import VideoFrame from "./components/VideoFrame";
+import Loader from "./components/Loader";
 
-const Video = ({peerAddress, userAlice, initiator, emitPeerDisconnect}) => {
+const Video = ({
+  peerAddress,
+  userAlice,
+  initiator,
+  emitPeerDisconnect,
+  onEndCall,
+}) => {
   const {data: signer} = useWalletClient();
   const {address: walletAddress} = useAccount();
   const aliceVideoCall = useRef();
@@ -39,6 +46,7 @@ const Video = ({peerAddress, userAlice, initiator, emitPeerDisconnect}) => {
         await aliceVideoCall.current.approve(data?.peerInfo);
       }
       if (data.event === VideoEventType.DisconnectVideo) {
+        createdStream.disconnect();
         emitPeerDisconnect();
       }
     });
@@ -61,9 +69,9 @@ const Video = ({peerAddress, userAlice, initiator, emitPeerDisconnect}) => {
   // Here we initialize the push video API, which is the first and important step to make video calls
   useEffect(() => {
     if (!signer) return;
-    if (data?.incoming[0]?.status !== VideoCallStatus.UNINITIALIZED) return; // data?.incoming[0]?.status will have a status of VideoCallStatus.UNINITIALIZED when the video call is not initialized, call ended or denied. So we Initialize the Push API here.
+    // if (data?.incoming[0]?.status !== VideoCallStatus.UNINITIALIZED) return; // data?.incoming[0]?.status will have a status of VideoCallStatus.UNINITIALIZED when the video call is not initialized, call ended or denied. So we Initialize the Push API here.
     initializePushAPI();
-  }, [signer, data.incoming[0].status]);
+  }, [signer]);
 
   useEffect(() => {
     console.log("isPushStreamConnected", isPushStreamConnected); // This will be true when the push stream is connected
@@ -72,7 +80,8 @@ const Video = ({peerAddress, userAlice, initiator, emitPeerDisconnect}) => {
   return (
     <div>
       <div>
-        {data?.incoming[0]?.status === VideoCallStatus.CONNECTED ? (
+        {data?.incoming[0]?.status === VideoCallStatus.CONNECTED &&
+        data?.incoming[0].stream ? (
           <VideoFrame
             data={data}
             onToggleMic={() => {
@@ -85,15 +94,14 @@ const Video = ({peerAddress, userAlice, initiator, emitPeerDisconnect}) => {
               await aliceVideoCall.current.disconnect(
                 data?.incoming[0]?.address
               );
-              emitPeerDisconnect();
+
+              onEndCall();
+              window.location.reload();
             }}
           />
         ) : (
           <div>
-            <span className="loading loading-ring loading-xs"></span>
-            <span className="loading loading-ring loading-sm"></span>
-            <span className="loading loading-ring loading-md"></span>
-            <span className="loading loading-ring loading-lg"></span>
+            <Loader />
           </div>
         )}
       </div>
