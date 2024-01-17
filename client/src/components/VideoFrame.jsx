@@ -38,7 +38,7 @@ export default function VideoFrame({
           )}
         </div>
       </div>
-      <div className="flex gap-2 justify-center align-center md:mt-[30px] xl:mt-0 mt-[20px] ">
+      <div className="flex gap-2 justify-center align-center md:mt-[30px] xl:mt-[20px] mt-[20px] ">
         <button
           className="btn btn-outline btn-info"
           disabled={!data.incoming[0]}

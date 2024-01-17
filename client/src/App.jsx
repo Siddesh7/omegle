@@ -153,9 +153,13 @@ function App() {
             peerAddress={peerWalletAddress}
             userAlice={userAlice.current}
             initiator={videoCallInitiator}
-            emitPeerDisconnect={() => {
+            onEndCall={() => {
               socket.emit("endPeerConnection", peerWalletAddress);
               setIsPeerConnected(false);
+              window.location.reload();
+            }}
+            emitPeerDisconnect={() => {
+              window.location.reload();
             }}
           />
         )}
