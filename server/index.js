@@ -5,7 +5,11 @@ const cors = require("cors");
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
-app.use(cors());
+app.use(
+  cors({
+    origin: "https://bored-anons.vercel.app", // Specify the allowed origin
+  })
+);
 let users = [];
 
 io.on("connection", (socket) => {
