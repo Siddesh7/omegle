@@ -118,11 +118,6 @@ io.on("connection", (socket) => {
       const chosenItem =
         availableUsers[Math.floor(Math.random() * availableUsers.length)];
 
-      // Now you can use the chosenItem for further processing
-      console.log(chosenItem);
-      // Notify both peers that they are connected
-      // io.to(chosenItem.id).emit("peer_matched", walletAddress);
-      io.to(socket.id).emit("peer_matched", chosenItem.walletAddress);
       const userIndexCaller = users.findIndex(
         (user) => user.walletAddress === walletAddress
       );
