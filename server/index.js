@@ -129,12 +129,16 @@ io.on("connection", (socket) => {
       const userIndexPeer = users.findIndex(
         (user) => user.walletAddress === chosenItem.walletAddress
       );
-      users[userIndexCaller].busy = true;
-      users[userIndexPeer].busy = true;
-      users[userIndexCaller].lookingForPeers = false;
-      users[userIndexPeer].lookingForPeers = false;
-      users[userIndexCaller].connectedPeerId = chosenItem.id;
-      users[userIndexPeer].connectedPeerId = caller.id;
+      if (userIndexCaller && userIndexPeer) {
+        users[userIndexCaller].busy = true;
+        users[userIndexPeer].busy = true;
+        users[userIndexCaller].lookingForPeers = false;
+        users[userIndexPeer].lookingForPeers = false;
+        users[userIndexCaller].connectedPeerId = chosenItem.id;
+        users[userIndexPeer].connectedPeerId = caller.id;
+      } else {
+        io.to(caller.id).emit("no_active_peers_found", walletAddress);
+      }
     } else {
       io.to(caller.id).emit("no_active_peers_found", walletAddress);
 
