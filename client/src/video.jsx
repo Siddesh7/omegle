@@ -22,7 +22,6 @@ const Video = ({
   const {address: walletAddress} = useAccount();
   const aliceVideoCall = useRef();
   const [isPushStreamConnected, setIsPushStreamConnected] = useState(false);
-  console.log("peerAddress", peerAddress);
   const [data, setData] = useState(initVideoCallData);
   const createdStream = useRef();
   const initializePushAPI = async () => {
@@ -41,7 +40,6 @@ const Video = ({
     });
 
     createdStream.current.on(CONSTANTS.STREAM.VIDEO, async (data) => {
-      console.log("Video Event", data);
       if (data.event === VideoEventType.RequestVideo) {
         await aliceVideoCall.current.approve(data?.peerInfo);
       }
