@@ -141,7 +141,10 @@ io.on("connection", (socket) => {
       console.log("No valid user found.");
     }
   });
-
+  socket.on("user_status_toggle", (newStatus) => {
+    const userIndex = users.findIndex((user) => user.id === socket.id);
+    if (userIndex !== -1) users[userIndex].lookingForPeers = newStatus;
+  });
   socket.on("endPeerConnection", (peerAddress) => {
     // Handle disconnecting from a peer, if needed
 
