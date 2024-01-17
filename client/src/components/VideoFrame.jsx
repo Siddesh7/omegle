@@ -44,7 +44,7 @@ export default function VideoFrame({
           disabled={!data.incoming[0]}
           onClick={onToggleMic}
         >
-          {data.local.audio ? (
+          {!data.local.audio ? (
             <IoMicOffOutline size={"20px"} />
           ) : (
             <IoMicSharp size={"20px"} />
