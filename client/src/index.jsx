@@ -16,7 +16,7 @@ import {publicProvider} from "wagmi/providers/public";
 
 import App from "./App";
 import VideoPage from "./video";
-
+import {inject} from "@vercel/analytics";
 const {chains, publicClient} = configureChains([sepolia], [publicProvider()]);
 const {connectors} = getDefaultWallets({
   appName: "My RainbowKit App",
@@ -44,3 +44,5 @@ ReactDOM.render(
   </React.StrictMode>,
   document.getElementById("root")
 );
+
+inject();
