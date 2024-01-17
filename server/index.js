@@ -4,12 +4,15 @@ const socketIO = require("socket.io");
 const cors = require("cors");
 const app = express();
 const server = http.createServer(app);
-const io = socketIO(server);
-app.use(
-  cors({
-    origin: "https://bored-anons.vercel.app", // Specify the allowed origin
-  })
-);
+const io = socketIO(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+    allowedHeaders: ["*"],
+    credentials: true,
+  },
+});
+
 let users = [];
 
 io.on("connection", (socket) => {
