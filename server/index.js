@@ -138,10 +138,10 @@ io.on("connection", (socket) => {
         users[userIndexCaller].connectedPeerId = chosenItem.id;
         users[userIndexPeer].connectedPeerId = caller.id;
       } else {
-        io.to(caller.id).emit("no_active_peers_found", walletAddress);
+        io.to(socket.id).emit("no_active_peers_found", walletAddress);
       }
     } else {
-      io.to(caller.id).emit("no_active_peers_found", walletAddress);
+      io.to(socket.id).emit("no_active_peers_found", walletAddress);
 
       console.log("No valid user found.");
     }
