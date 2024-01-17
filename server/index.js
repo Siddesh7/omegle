@@ -130,6 +130,7 @@ io.on("connection", (socket) => {
         (user) => user.walletAddress === chosenItem.walletAddress
       );
       if (userIndexCaller && userIndexPeer) {
+        io.to(socket.id).emit("peer_matched", chosenItem.walletAddress);
         users[userIndexCaller].busy = true;
         users[userIndexPeer].busy = true;
         users[userIndexCaller].lookingForPeers = false;
