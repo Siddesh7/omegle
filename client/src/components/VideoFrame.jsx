@@ -29,7 +29,6 @@ export default function VideoFrame({
           {data?.incoming[0] ? (
             <VideoPlayer
               whoIs={data?.incoming[0]?.address}
-              styles="overflow-hidden w-[95%] m-auto"
               stream={data.incoming[0].stream}
               isMuted={false}
             />
