@@ -134,7 +134,7 @@ function App() {
     if (!chatExists) {
       await userAlice.current.chat.send(peerAddress, {
         type: "Text",
-        content: "Hi Peer, setting up a call!",
+        content: "Hi Peer, setting up a call! from bored-anons.xyz",
       });
       socket.current.emit("chat_message_sent", peerAddress);
     }
