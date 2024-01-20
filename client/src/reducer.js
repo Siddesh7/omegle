@@ -8,6 +8,7 @@ const actionTypes = {
   SET_VIDEO_CALL_INITIATOR: "SET_VIDEO_CALL_INITIATOR",
   SET_USER_ACTIVE: "SET_USER_ACTIVE",
   SET_INCOMING_PEER_REQUEST: "SET_INCOMING_PEER_REQUEST",
+  SET_ERROR: "SET_ERROR",
 };
 
 // Reducer function
@@ -29,6 +30,8 @@ const appReducer = (state, action) => {
       return {...state, userActive: action.payload};
     case actionTypes.SET_INCOMING_PEER_REQUEST:
       return {...state, incomingPeerRequest: action.payload};
+    case actionTypes.SET_ERROR:
+      return {...state, error: action.payload};
     default:
       return state;
   }

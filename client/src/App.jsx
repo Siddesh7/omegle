@@ -24,6 +24,7 @@ function App() {
       videoCallInitiator,
       userActive,
       incomingPeerRequest,
+      error,
     },
     dispatch,
   ] = useReducer(appReducer, {
@@ -35,6 +36,7 @@ function App() {
     videoCallInitiator: "",
     userActive: true,
     incomingPeerRequest: false,
+    error: false,
   });
 
   const connectToPeer = () => {
@@ -75,7 +77,9 @@ function App() {
         payload: true,
       });
     });
-
+    socket.current.on("error", () => {
+      dispatch({type: actionTypes.SET_ERROR, payload: true});
+    });
     socket.current.on("chat_message_request", async (peerAddress) => {
       const aliceChatRequsts = await userAlice.current.chat.list("REQUESTS");
       for (const chat of aliceChatRequsts) {
@@ -234,7 +238,17 @@ function App() {
           />
         )}
       </div>
-
+      {error && (
+        <Modal
+          text={"Something Went wrong, Please reload the page."}
+          onClose={() => {
+            dispatch({
+              type: actionTypes.SET_ERROR,
+              payload: false,
+            });
+          }}
+        />
+      )}
       {/* Render the modal when the peer is disconnected */}
       {showPeerDisconnectedModal && (
         <Modal

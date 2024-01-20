@@ -47,6 +47,7 @@ io.on("connection", (socket) => {
   socket.on("connect_to_peer", (walletAddress) => {
     const caller = users.find((user) => user.id === socket.id);
     if (!caller || !caller.walletAddress) {
+      io.to(socket.id).emit("error");
       return;
     }
     if (caller && caller.busy) {
