@@ -2,7 +2,7 @@
 
 ## Description
 
-This project randomly connects 2 peers online and opens up a Push chat between the peers.
+This project randomly connects 2 peers online and opens up a video call between the peers.
 
 ## Getting Started
 
