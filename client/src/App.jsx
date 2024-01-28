@@ -12,7 +12,7 @@ import {useParams} from "react-router-dom";
 import {balanceABI, getContractAddress} from "./utils";
 function App() {
   const {uri} = useParams();
-  console.log(uri);
+
   const socket = useRef(null);
   const userAlice = useRef();
   const {data: signer} = useWalletClient();
@@ -176,7 +176,6 @@ function App() {
   }, [signer, isPeerConnected]);
 
   useEffect(() => {
-    console.log("balance", balance);
     if (balance) {
       socket.current.emit("token_gated_check", Number(balance), uri || "/");
     }
@@ -186,9 +185,7 @@ function App() {
 
     if (walletConnected && walletAddress) {
       if (uri) {
-        console.log("uri, chainId", uri, chainId);
         const contractAddress = getContractAddress(uri, chainId);
-        console.log("contractAddress", contractAddress);
         if (contractAddress) {
           dispatch({
             type: actionTypes.SET_TOKEN_CONTRACT_ADDRESS,
