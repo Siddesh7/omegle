@@ -11,12 +11,16 @@ import {
   RainbowKitProvider,
 } from "@rainbow-me/rainbowkit";
 import {configureChains, createConfig, WagmiConfig} from "wagmi";
-import {mainnet} from "wagmi/chains";
+import {mainnet, polygon} from "wagmi/chains";
 import {publicProvider} from "wagmi/providers/public";
 
 import App from "./App";
 import {inject} from "@vercel/analytics";
-const {chains, publicClient} = configureChains([mainnet], [publicProvider()]);
+
+const {chains, publicClient} = configureChains(
+  [mainnet, polygon],
+  [publicProvider()]
+);
 const {connectors} = getDefaultWallets({
   appName: "Bored Anons",
   projectId: "c79671f77e15d3c16d8df828931df7a7",
@@ -28,7 +32,10 @@ const wagmiConfig = createConfig({
   publicClient,
 });
 
-const router = createBrowserRouter([{path: "/", element: <App />}]);
+const router = createBrowserRouter([
+  {path: "/", element: <App />},
+  {path: "/:uri", element: <App />},
+]);
 
 ReactDOM.render(
   <React.StrictMode>

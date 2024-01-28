@@ -7,6 +7,8 @@ import {
   IoVideocamOutline,
 } from "react-icons/io5";
 import {ImPhoneHangUp} from "react-icons/im";
+import {reverseResolveAddress} from "../utils";
+import {useEffect, useState} from "react";
 
 export default function VideoFrame({
   data,
@@ -14,13 +16,23 @@ export default function VideoFrame({
   onToggleCam,
   onEndCall,
 }) {
+  const [callerName, setCallerName] = useState("");
+  useEffect(() => {
+    const fetchCallerName = async () => {
+      const name = await reverseResolveAddress(data?.incoming[0]?.address);
+
+      setCallerName(name);
+    };
+
+    fetchCallerName();
+  }, [data?.incoming[0]?.address]);
   return (
     <div>
       <div className="w-[90vw] m-auto flex flex-row justify-around gap-2">
         <VideoPlayer whoIs={"You"} stream={data.local.stream} isMuted={true} />
 
         <VideoPlayer
-          whoIs={data?.incoming[0]?.address}
+          whoIs={callerName ?? data?.incoming[0]?.address}
           stream={data.incoming[0].stream}
           isMuted={false}
         />

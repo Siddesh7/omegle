@@ -1,21 +1,26 @@
 import React, {useEffect, useRef, useReducer} from "react";
 import io from "socket.io-client";
 import {ConnectButton} from "@rainbow-me/rainbowkit";
-import {useAccount, useWalletClient} from "wagmi";
+import {useAccount, useWalletClient, useContractRead, useChainId} from "wagmi";
 import {CONSTANTS, PushAPI} from "@pushprotocol/restapi";
 
 import {appReducer, actionTypes} from "./reducer";
 import Modal from "./components/Modal";
 import Video from "./video";
 import Loader from "./components/Loader";
-
+import {useParams} from "react-router-dom";
+import {balanceABI, getContractAddress} from "./utils";
 function App() {
+  const {uri} = useParams();
+  console.log(uri);
   const socket = useRef(null);
   const userAlice = useRef();
   const {data: signer} = useWalletClient();
   const {address: walletAddress, isConnected: walletConnected} = useAccount();
+  const chainId = useChainId();
   const [
     {
+      userReady,
       isPeerConnected,
       peerWalletAddress,
       showPeerDisconnectedModal,
@@ -25,9 +30,11 @@ function App() {
       userActive,
       incomingPeerRequest,
       error,
+      tokenContractAddress,
     },
     dispatch,
   ] = useReducer(appReducer, {
+    userReady: false,
     isPeerConnected: false,
     peerWalletAddress: "",
     showPeerDisconnectedModal: false,
@@ -37,13 +44,22 @@ function App() {
     userActive: true,
     incomingPeerRequest: false,
     error: false,
+    tokenContractAddress: "",
   });
-
+  const {data: balance} = useContractRead({
+    abi: balanceABI,
+    address: tokenContractAddress,
+    functionName: "balanceOf",
+    args: [walletAddress],
+  });
   const connectToPeer = () => {
     socket.current.emit("connect_to_peer", walletAddress);
   };
 
   const setupSocketListeners = () => {
+    socket.current.on("ready_to_connect", () => {
+      dispatch({type: actionTypes.SET_USER_READY, payload: true});
+    });
     socket.current.on("peer_matched", (peerAddress) => {
       dispatch({type: actionTypes.SET_PEER_MATCHED, payload: true});
       checkIfChatExists(peerAddress);
@@ -160,10 +176,27 @@ function App() {
   }, [signer, isPeerConnected]);
 
   useEffect(() => {
+    console.log("balance", balance);
+    if (balance) {
+      socket.current.emit("token_gated_check", Number(balance), uri || "/");
+    }
+  }, [balance]);
+  useEffect(() => {
     setupSocketListeners();
 
     if (walletConnected && walletAddress) {
-      socket.current.emit("connect_wallet", walletAddress);
+      if (uri) {
+        console.log("uri, chainId", uri, chainId);
+        const contractAddress = getContractAddress(uri, chainId);
+        console.log("contractAddress", contractAddress);
+        if (contractAddress) {
+          dispatch({
+            type: actionTypes.SET_TOKEN_CONTRACT_ADDRESS,
+            payload: contractAddress,
+          });
+        }
+      }
+      socket.current.emit("connect_wallet", walletAddress, uri || "/");
     }
     if (!walletAddress) {
       socket.current.emit("wallet_disconnected");
@@ -194,6 +227,7 @@ function App() {
                       <button
                         className="btn btn-primary"
                         onClick={connectToPeer}
+                        disabled={!userReady}
                       >
                         Connect to a Peer
                       </button>

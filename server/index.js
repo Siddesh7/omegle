@@ -17,7 +17,7 @@ let users = [];
 
 io.on("connection", (socket) => {
   console.log(`User connected with socket id: ${socket.id}`);
-  socket.on("connect_wallet", (walletAddress) => {
+  socket.on("connect_wallet", (walletAddress, route) => {
     const userCaller = users.findIndex(
       (user) => user.id === socket.id || user.walletAddress === walletAddress
     );
@@ -31,8 +31,27 @@ io.on("connection", (socket) => {
         busy: false,
         lookingForPeers: true,
         connectedPeerId: null,
+        hasTokens: null,
+        route: null,
       });
     }
+    if (route === "/") {
+      io.to(socket.id).emit("ready_to_connect");
+    }
+  });
+  socket.on("token_gated_check", (balance, route) => {
+    const userCaller = users.findIndex((user) => user.id === socket.id);
+    if (userCaller !== -1) {
+      if (balance > 0) {
+        users[userCaller].hasTokens = true;
+        users[userCaller].route = route;
+      } else {
+        users[userCaller].hasTokens = false;
+        users[userCaller].route = route;
+      }
+    }
+
+    io.to(socket.id).emit("ready_to_connect");
   });
   socket.on("wallet_disconnected", () => {
     const userIndex = users.findIndex((user) => user.id === socket.id);
@@ -53,17 +72,31 @@ io.on("connection", (socket) => {
     if (caller && caller.busy) {
       return;
     }
-
-    const availableUsers = users.filter(
-      (user) =>
-        user.walletAddress !== walletAddress &&
-        user.id !== caller.id &&
-        user.walletAddress !== null &&
-        user.online &&
-        user.lookingForPeers &&
-        !user.busy
-    );
-
+    let availableUsers;
+    if (caller.route !== "/" && caller.hasTokens) {
+      availableUsers = users.filter(
+        (user) =>
+          user.walletAddress !== walletAddress &&
+          user.id !== caller.id &&
+          user.walletAddress !== null &&
+          user.online &&
+          user.lookingForPeers &&
+          !user.busy &&
+          user.route === caller.route &&
+          user.hasTokens
+      );
+    } else {
+      availableUsers = users.filter(
+        (user) =>
+          user.walletAddress !== walletAddress &&
+          user.id !== caller.id &&
+          user.walletAddress !== null &&
+          user.online &&
+          user.lookingForPeers &&
+          !user.busy &&
+          user.route === caller.route
+      );
+    }
     if (availableUsers.length > 0) {
       const chosenItem =
         availableUsers[Math.floor(Math.random() * availableUsers.length)];
@@ -184,7 +217,7 @@ function logUsers() {
   console.log("-------------------Connected Users:--------------------------");
   users.forEach((user) => {
     console.log(
-      `Wallet Address: ${user.walletAddress}, Online: ${user.online}, Busy: ${user.busy}, LookingForPeer: ${user.lookingForPeers} socket: ${user.id} Connected Peer: ${user.connectedPeerId}`
+      `Wallet Address: ${user.walletAddress}, Online: ${user.online}, Busy: ${user.busy}, LookingForPeer: ${user.lookingForPeers} socket: ${user.id} Connected Peer: ${user.connectedPeerId} Route: ${user.route} hasTokens: ${user.hasTokens}`
     );
   });
   console.log("-------------------------------------------------------------");

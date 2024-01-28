@@ -1,5 +1,6 @@
 // Action types
 const actionTypes = {
+  SET_USER_READY: "SET_USER_READY",
   SET_IS_PEER_CONNECTED: "SET_IS_PEER_CONNECTED",
   SET_PEER_WALLET_ADDRESS: "SET_PEER_WALLET_ADDRESS",
   SET_SHOW_PEER_DISCONNECTED_MODAL: "SET_SHOW_PEER_DISCONNECTED_MODAL",
@@ -9,11 +10,14 @@ const actionTypes = {
   SET_USER_ACTIVE: "SET_USER_ACTIVE",
   SET_INCOMING_PEER_REQUEST: "SET_INCOMING_PEER_REQUEST",
   SET_ERROR: "SET_ERROR",
+  SET_TOKEN_CONTRACT_ADDRESS: "SET_TOKEN_CONTRACT_ADDRESS",
 };
 
 // Reducer function
 const appReducer = (state, action) => {
   switch (action.type) {
+    case actionTypes.SET_USER_READY:
+      return {...state, userReady: action.payload};
     case actionTypes.SET_IS_PEER_CONNECTED:
       return {...state, isPeerConnected: action.payload};
     case actionTypes.SET_PEER_WALLET_ADDRESS:
@@ -32,6 +36,8 @@ const appReducer = (state, action) => {
       return {...state, incomingPeerRequest: action.payload};
     case actionTypes.SET_ERROR:
       return {...state, error: action.payload};
+    case actionTypes.SET_TOKEN_CONTRACT_ADDRESS:
+      return {...state, tokenContractAddress: action.payload};
     default:
       return state;
   }

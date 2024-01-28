@@ -1,9 +1,11 @@
 import {useEffect, useRef} from "react";
-import {truncateAddress} from "../utils";
+import {isEthereumAddress, truncateAddress} from "../utils";
+import {useParams} from "react-router-dom";
 
 export default function VideoPlayer({stream, isMuted, whoIs}) {
   const videoRef = useRef(null);
-
+  const {uri} = useParams();
+  console.log("uriiii", uri);
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.srcObject = stream;
@@ -16,7 +18,11 @@ export default function VideoPlayer({stream, isMuted, whoIs}) {
   return (
     <div className="relative w-full aspect-[3/2] rounded-xl overflow-hidden">
       <p className="absolute bottom-[10px] left-[20px] z-[100] p-4 badge badge-xs font-xs">
-        {whoIs === "You" ? whoIs : truncateAddress(whoIs)}
+        {whoIs === "You"
+          ? whoIs
+          : isEthereumAddress(whoIs)
+          ? truncateAddress(whoIs)
+          : whoIs}
       </p>
 
       <video
