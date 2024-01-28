@@ -190,25 +190,26 @@ io.on("connection", (socket) => {
 
   socket.on("endPeerConnection", () => {
     const currUserSocket = users.find((user) => user.id === socket.id);
-
-    if (currUserSocket.walletAddress) {
-      const userIndex = users.findIndex(
-        (user) => user.walletAddress === currUserSocket.walletAddress
-      );
-      const userIndexPeer = users.findIndex(
-        (user) => user.id === users[userIndex].connectedPeerId
-      );
-      // Instead of removing the user entry, update its properties
-      if (userIndex !== -1) {
-        users[userIndex].busy = false;
-        users[userIndex].lookingForPeers = true;
+    if (currUserSocket) {
+      if (currUserSocket.walletAddress) {
+        const userIndex = users.findIndex(
+          (user) => user.walletAddress === currUserSocket.walletAddress
+        );
+        const userIndexPeer = users.findIndex(
+          (user) => user.id === users[userIndex].connectedPeerId
+        );
+        // Instead of removing the user entry, update its properties
+        if (userIndex !== -1) {
+          users[userIndex].busy = false;
+          users[userIndex].lookingForPeers = true;
+        }
+        if (userIndexPeer !== -1) {
+          users[userIndexPeer].busy = false;
+          users[userIndexPeer].lookingForPeers = true;
+          users[userIndexPeer].connectedPeerId = null;
+        }
+        io.to(userIndexPeer.id).emit("peer_disconnected_call");
       }
-      if (userIndexPeer !== -1) {
-        users[userIndexPeer].busy = false;
-        users[userIndexPeer].lookingForPeers = true;
-        users[userIndexPeer].connectedPeerId = null;
-      }
-      io.to(userIndexPeer.id).emit("peer_disconnected_call");
     }
   });
 });
